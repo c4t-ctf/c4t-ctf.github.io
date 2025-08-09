@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta property="og:title" content="C4t Ctf">
+    <meta property="og:description" content="Ctf C4t docs is a webpage where the hacker 'akeanti' documentes his rooms for others.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/akeanti/akeanti.github.io/main/pitures/akeanti.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ffffff">
+    <title>c4t ctf</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;600&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --primary-light: #f6e6d3;
+            --secondary-light: #f8d5c2;
+            --terminal-bg-light: #4b2e4a;
+            --terminal-text-light: #e5d78b;
+            --terminal-shadow-light: rgba(0,0,0,0.3);
+            --accent-light: #fcb79c;
+            --dark-primary: #0b140a;
+            --dark-secondary: #020404;
+            --terminal-bg-dark: #011200;
+            --terminal-text-dark: #00ff00;
+            --terminal-shadow-dark: #00ff00aa;
+            --accent-dark: #141f10;
+            --transition-time: 0.4s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            font-family: 'Fira Code', monospace;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
+            color: var(--terminal-bg-light);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background var(--transition-time) ease;
+        }
+        body.dark {
+            background: radial-gradient(ellipse at center, var(--dark-primary), var(--dark-secondary) 90%);
+            color: #adebad;
+        }
+
+        .page-wrapper {
+            flex-grow: 1;
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            height: calc(100vh - 56px);
+            background:
+                    linear-gradient(#000 1px, transparent 1px),
+                    linear-gradient(90deg, #000 1px, transparent 1px);
+            background-size: 20px 20px;
+            position: relative;
+        }
+
+        .taskbar {
+            height: 56px;
+            background: var(--accent-light);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            user-select: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: background var(--transition-time) ease, color var(--transition-time) ease;
+            z-index: 100;
+            position: relative;
+        }
+        .taskbar.dark {
+            background: var(--accent-dark);
+            color: #adebad;
+        }
+        .status-dots {
+            display: flex;
+            gap: 8px;
+        }
+        .status-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #ff5f56;
+            box-shadow: 0 0 6px rgba(255,95,86,0.7);
+            transition: background 0.3s ease;
+            cursor: pointer;
+        }
+        .status-dot.yellow {
+            background: #ffbd2e;
+            box-shadow: 0 0 6px rgba(255,189,46,0.7);
+        }
+        .status-dot.green {
+            background: #27c93f;
+            box-shadow: 0 0 6px rgba(39,201,63,0.7);
+        }
+        .taskbar-title {
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: 0.05em;
+            flex-grow: 1;
+            color: inherit;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .terminal-container {
+            background: #f7d0c0;
+            border-radius: 8px;
+            box-shadow: 0 8px 25px var(--terminal-shadow-light);
+            flex: 2 1 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid rgba(75, 46, 74, 0.2);
+            position: relative;
+            transition: background var(--transition-time) ease;
+        }
+        body.dark .terminal-container {
+            background: var(--terminal-bg-dark);
+            box-shadow:
+                    0 0 12px var(--terminal-shadow-dark),
+                    inset 0 0 8px #00ff00cc,
+                    0 0 30px #00ff0055;
+        }
+
+        .terminal-noise {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            background-image:
+                    radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 3px 3px;
+            animation: noiseMove 15s linear infinite;
+            z-index: 0;
+        }
+        @keyframes noiseMove {
+            0% {background-position: 0 0;}
+            100% {background-position: 100px 100px;}
+        }
+
+        .terminal {
+            background: var(--terminal-bg-light);
+            color: var(--terminal-text-light);
+            padding: 18px;
+            font-size: 15px;
+            line-height: 1.5em;
+            overflow-y: auto;
+            flex-grow: 1;
+            white-space: pre-wrap;
+            position: relative;
+            z-index: 1;
+            user-select: text;
+            text-shadow:
+                    0 0 4px #c9a66b,
+                    0 0 7px #f0de7e;
+            transition: color var(--transition-time) ease, text-shadow var(--transition-time) ease;
+        }
+        body.dark .terminal {
+            background: transparent;
+            color: var(--terminal-text-dark);
+            text-shadow:
+                    0 0 8px var(--terminal-text-dark),
+                    0 0 20px #00ff00cc,
+                    0 0 30px #00ff00aa;
+        }
+
+        .terminal-output {
+            margin-bottom: 10px;
+        }
+        .command-line {
+            color: #f7a07a;
+            font-weight: bold;
+        }
+        .command-result {
+            margin-top: 5px;
+            display: block;
+            white-space: pre-wrap;
+        }
+
+        .input-line {
+            display: flex;
+            align-items: center;
+            background: rgba(75, 46, 74, 0.8);
+            padding: 10px 18px;
+            color: #f7a07a;
+            font-weight: bold;
+            user-select: none;
+            font-size: 15px;
+            position: relative;
+            z-index: 2;
+            transition: background var(--transition-time) ease, color var(--transition-time) ease;
+        }
+        body.dark .input-line {
+            background: rgba(0, 60, 0, 0.8);
+            color: #00ff00;
+        }
+        .input-line input {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            color: inherit;
+            font-family: inherit;
+            font-size: 15px;
+            outline: none;
+            caret-color: transparent;
+            text-shadow: 0 0 5px currentColor;
+        }
+        .cursor {
+            width: 8px;
+            height: 18px;
+            background: #f7a07a;
+            margin-left: 4px;
+            animation: blink 1.2s step-start 0s infinite;
+            border-radius: 2px;
+            align-self: center;
+            transition: background var(--transition-time) ease;
+        }
+        body.dark .cursor {
+            background: #00ff00;
+        }
+        @keyframes blink {
+            50% {opacity: 0;}
+        }
+
+        .controls-sidebar {
+            background: var(--accent-light);
+            border-radius: 8px;
+            box-shadow: 0 8px 25px var(--terminal-shadow-light);
+            flex: 1 0 320px;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+            transition: background var(--transition-time) ease, color var(--transition-time) ease;
+        }
+        body.dark .controls-sidebar {
+            background: linear-gradient(135deg, #002200, #001100);
+            color: #adebad;
+            box-shadow:
+                    0 0 12px var(--terminal-shadow-dark),
+                    inset 0 0 8px #00ff00cc;
+        }
+
+        .controls-particles {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                    radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            animation: particlesMove 40s linear infinite;
+        }
+        @keyframes particlesMove {
+            0% {background-position: 0 0;}
+            100% {background-position: 200px 200px;}
+        }
+
+        .nav-links {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+            gap: 8px;
+        }
+        .nav-link {
+            flex: 1;
+            background: transparent;
+            border: none;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 10px 8px;
+            border-radius: 16px;
+            cursor: pointer;
+            color: inherit;
+            transition: all 0.3s ease;
+            user-select: none;
+            text-align: center;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .nav-link.active,
+        .nav-link:hover {
+            background: rgba(252, 183, 156, 0.95);
+            color: #4b2e4a;
+            box-shadow: 0 0 12px rgba(252, 183, 156, 0.85);
+        }
+        body.dark .nav-link.active,
+        body.dark .nav-link:hover {
+            background: #004400;
+            color: #adebad;
+            box-shadow: 0 0 16px #00ff00;
+        }
+
+        .toggles {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .toggle-btn {
+            background: rgba(252, 183, 156, 0.9);
+            border: none;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 12px 8px;
+            cursor: pointer;
+            color: #4b2e4a;
+            box-shadow: 0 0 8px rgba(252, 183, 156, 0.8);
+            transition: all 0.3s ease;
+            user-select: none;
+            text-align: center;
+            min-width: 0;
+        }
+        .toggle-btn:hover {
+            background: rgba(252, 183, 156, 1);
+            transform: translateY(-2px);
+        }
+        body.dark .toggle-btn {
+            background: #004400;
+            color: #adebad;
+            box-shadow: 0 0 10px #00ff00;
+        }
+        body.dark .toggle-btn:hover {
+            background: #006600;
+            transform: translateY(-2px);
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+            color: inherit;
+        }
+        .volume-control label {
+            font-weight: 700;
+            font-size: 13px;
+            user-select: none;
+            min-width: 65px;
+        }
+        .volume-control input[type="range"] {
+            flex-grow: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 8px;
+            background: #e0b59e;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .volume-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px; height: 20px;
+            background: #4b2e4a;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .volume-control input[type="range"]:hover::-webkit-slider-thumb {
+            background: #fcb79c;
+            transform: scale(1.1);
+        }
+        body.dark .volume-control input[type="range"] {
+            background: #004400;
+        }
+        body.dark .volume-control input[type="range"]::-webkit-slider-thumb {
+            background: #00ff00;
+        }
+
+        .writings-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            border: 1px solid rgba(75, 46, 74, 0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            background: #f7d0c0;
+            color: #4b2e4a;
+            font-size: 14px;
+            position: relative;
+            z-index: 1;
+            display: none;
+        }
+        body.dark .writings-list {
+            background: #022200;
+            color: #adebad;
+            border-color: #005500;
+        }
+        .writings-list a {
+            display: block;
+            margin-bottom: 8px;
+            color: inherit;
+            text-decoration: none;
+            border-radius: 4px;
+            padding: 8px 10px;
+            transition: all 0.2s ease;
+            user-select: none;
+            position: relative;
+            padding-left: 28px;
+        }
+        .writings-list a:before {
+            content: "> ";
+            position: absolute;
+            left: 10px;
+            font-weight: bold;
+        }
+        .writings-list a:hover {
+            background: rgba(252, 183, 156, 0.8);
+            color: #4b2e4a;
+            transform: translateX(5px);
+        }
+        body.dark .writings-list a:hover {
+            background: #007700;
+            color: #adebad;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 16px;
+            background: rgba(0,0,0,0.1);
+            font-size: 12px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            color: inherit;
+        }
+        body.dark .status-bar {
+            background: rgba(0,30,0,0.2);
+            border-top: 1px solid rgba(0,80,0,0.3);
+        }
+
+        #matrix-canvas {
+            position: fixed;
+            top: 56px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .loading {
+            display: inline-block;
+            position: relative;
+            width: 80px;
+            height: 16px;
+        }
+        .loading div {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation-timing-function: cubic-bezier(0, 1, 1, 0);
+        }
+        .loading div:nth-child(1) {
+            left: 8px;
+            animation: loading1 0.6s infinite;
+        }
+        .loading div:nth-child(2) {
+            left: 8px;
+            animation: loading2 0.6s infinite;
+        }
+        .loading div:nth-child(3) {
+            left: 32px;
+            animation: loading2 0.6s infinite;
+        }
+        .loading div:nth-child(4) {
+            left: 56px;
+            animation: loading3 0.6s infinite;
+        }
+        @keyframes loading1 {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+        @keyframes loading3 {
+            0% { transform: scale(1); }
+            100% { transform: scale(0); }
+        }
+        @keyframes loading2 {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(24px, 0); }
+        }
+
+        @media (max-width: 900px) {
+            .page-wrapper {
+                flex-direction: column;
+                height: auto;
+                overflow: auto;
+                padding: 8px;
+            }
+            .terminal-container, .controls-sidebar {
+                flex: unset;
+                width: 100%;
+                margin-bottom: 16px;
+                min-height: 350px;
+                height: 50vh;
+            }
+            .writings-list {
+                height: 180px;
+            }
+            .taskbar {
+                justify-content: center;
+            }
+            .nav-link {
+                font-size: 12px;
+                padding: 8px 4px;
+            }
+            .toggle-btn {
+                font-size: 12px;
+                padding: 10px 6px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .toggles {
+                grid-template-columns: 1fr;
+            }
+            .terminal {
+                padding: 12px;
+                font-size: 14px;
+            }
+            .taskbar-title {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="taskbar" id="taskbar">
+    <div class="status-dots">
+        <div class="status-dot" id="close-btn" title="Close"></div>
+        <div class="status-dot yellow" id="minimize-btn" title="Minimize"></div>
+        <div class="status-dot green" id="maximize-btn" title="Maximize"></div>
+    </div>
+    <div class="taskbar-title">c4t ctf</div>
+    <div class="status-bar" id="status-bar">
+        <span>CONNECTED •</span>
+        <span id="datetime"></span>•
+    </div>
+</div>
+
+<div class="page-wrapper">
+    <div class="terminal-container" tabindex="0">
+        <div class="terminal-noise"></div>
+        <div class="terminal" id="terminal">
+            > Welcome to c4t ctf by akeanti<br>
+            > I do documentations for my hackings here<br>
+            > Type 'help' to see available commands<br>
+            > <span class="loading"><div></div><div></div><div></div><div></div></span>
+        </div>
+        <div class="input-line">
+            <span class="prompt">$</span>
+            <input type="text" id="user-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+            <div class="cursor"></div>
+        </div>
+    </div>
+
+    <div class="controls-sidebar">
+        <div class="nav-links">
+            <button class="nav-link active" data-page="home" type="button">HOME</button>
+            <button class="nav-link" data-page="about" type="button">ABOUT</button>
+            <button class="nav-link" data-page="writings" type="button">WRITINGS</button>
+            <button class="nav-link" data-page="contact" type="button">CONTACT</button>
+        </div>
+
+        <div class="toggles">
+            <button class="toggle-btn" id="toggle-matrix" type="button">Matrix Rain</button>
+            <button class="toggle-btn" id="toggle-sound" type="button">Sound 🔊</button>
+            <button class="toggle-btn" id="toggle-theme" type="button">Dark Theme</button>
+            <button class="toggle-btn" id="toggle-textcolor" type="button">Text Color</button>
+            <button class="toggle-btn" id="random-joke" type="button">Random Joke</button>
+            <button class="toggle-btn" id="clear-terminal" type="button">Clear</button>
+        </div>
+
+        <div class="volume-control">
+            <label for="volume-slider">Volume:</label>
+            <input type="range" min="0" max="1" step="0.05" value="0.15" id="volume-slider" />
+        </div>
+
+        <div class="writings-list" id="writings-list">
+            <a href="doc1.html" target="_blank">Room 1</a>
+            <a href="#" target="_blank">Room 2</a>
+            <a href="#" target="_blank">Room 3</a>
+        </div>
+    </div>
+</div>
+
+<canvas id="matrix-canvas"></canvas>
+
+<script>
+    const terminal = document.getElementById('terminal');
+    const input = document.getElementById('user-input');
+    const writingsList = document.getElementById('writings-list');
+    const taskbar = document.getElementById('taskbar');
+    const statusBar = document.getElementById('status-bar');
+    const datetimeElement = document.getElementById('datetime');
+    const toggleMatrixBtn = document.getElementById('toggle-matrix');
+    const toggleSoundBtn = document.getElementById('toggle-sound');
+    const toggleThemeBtn = document.getElementById('toggle-theme');
+    const toggleTextColorBtn = document.getElementById('toggle-textcolor');
+    const clearBtn = document.getElementById('clear-terminal');
+    const randomJokeBtn = document.getElementById('random-joke');
+    const volumeSlider = document.getElementById('volume-slider');
+    const closeBtn = document.getElementById('close-btn');
+    const minimizeBtn = document.getElementById('minimize-btn');
+    const maximizeBtn = document.getElementById('maximize-btn');
+    const canvas = document.getElementById('matrix-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let matrixActive = false;
+    let animationFrameId;
+    let soundOn = true;
+    let volume = 0.15;
+    let neonGreenText = false;
+    let commandHistory = [];
+    let historyIndex = 0;
+    let isMaximized = false;
+
+    const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()-_=+[]{}|;:',.<>/?";
+    const fontSize = 16;
+    let columns;
+    let drops;
+
+    function init() {
+        resizeCanvas();
+        updateDateTime();
+        setInterval(updateDateTime, 60000);
+
+        setTimeout(() => {
+            terminal.querySelector('.loading').remove();
+        }, 1500);
+
+        toggleThemeBtn.textContent = 'Dark Theme';
+        toggleMatrixBtn.textContent = 'Matrix Rain';
+        toggleSoundBtn.textContent = 'Sound 🔊';
+        toggleTextColorBtn.textContent = 'Text Color';
+
+        input.focus();
+    }
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight - 56;
+        columns = Math.floor(canvas.width / fontSize);
+        drops = Array(columns).fill(1);
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function drawMatrix() {
+        ctx.fillStyle = 'rgba(0, 18, 0, 0.08)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.font = `${fontSize}px 'Fira Code', monospace`;
+        ctx.shadowColor = '#00ff00';
+        ctx.shadowBlur = 15;
+
+        for (let i = 0; i < drops.length; i++) {
+            if (Math.random() > 0.975) {
+                const text = letters.charAt(Math.floor(Math.random() * letters.length));
+                const x = i * fontSize;
+                const y = drops[i] * fontSize;
+
+                const opacity = Math.min(1, 1 - (y / canvas.height) * 0.8);
+                ctx.fillStyle = `rgba(0, 255, 0, ${opacity})`;
+                ctx.fillText(text, x, y);
+
+                if (y > canvas.height) drops[i] = 0;
+
+                drops[i]++;
+            }
+        }
+
+        ctx.shadowBlur = 0;
+        animationFrameId = requestAnimationFrame(drawMatrix);
+    }
+
+    function toggleMatrix() {
+        matrixActive = !matrixActive;
+        toggleMatrixBtn.textContent = matrixActive ? 'Matrix Rain ON' : 'Matrix Rain OFF';
+
+        if (matrixActive) {
+            drawMatrix();
+            terminal.style.color = neonGreenText ? '#00ff00' : '#adebad';
+        } else {
+            cancelAnimationFrame(animationFrameId);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            terminal.style.color = neonGreenText ? '#00ff00' :
+                (document.body.classList.contains('dark') ? '#00ff00' : '#e5d78b');
+        }
+    }
+
+    function playSound(frequency, duration) {
+        if (!soundOn) return;
+
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.value = frequency;
+        oscillator.type = 'sine';
+        gainNode.gain.value = volume;
+
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + duration);
+    }
+
+    function playKey() {
+        playSound(1200, 0.03);
+    }
+    function playCommand() {
+        playSound(800, 0.12);
+    }
+    function playClick() {
+        playSound(1000, 0.06);
+    }
+
+    // Command handlers
+    const commands = {
+        help: () => `
+Available commands:
+- help: Show this help message
+- about: About this terminal
+- writings: Show writings list
+- contact: Contact info
+- date: Show current date/time
+- joke: Tell a joke
+- matrix: Toggle matrix rain
+- sound: Toggle sound effects
+- theme: Toggle dark/light theme
+- clear: Clear terminal
+- textcolor: Toggle terminal text color (yellow/neon)
+- echo [text]: Print text to terminal
+- calc [expression]: Evaluate math expression
+- sysinfo: Show system information
+`,
+        about: () => `
+ABOUT
+Enhanced Documentation For Hacker By Akeanti v3.0
+A journey into the world of retro computing with modern web technologies.
+Designed for both aesthetics and functionality.
+I'm a certified hacker : akeanti.com.
+`,
+        writings: () => {
+            writingsList.style.display = 'block';
+            return `WRITINGS
+Check the writings list on the right panel.
+`;
+        },
+        contact: () => `
+CONTACT
+Email: akeanti@protonme
+Twitter: @akeantie
+GitHub: github.com/akeanti
+`,
+        date: () => `DATE
+${new Date().toLocaleString()}
+`,
+        joke: () => {
+            const jokes = [
+                "Why do programmers hate nature? It has too many bugs.",
+                "Why do Java developers wear glasses? Because they don't C#.",
+                "How many programmers does it take to change a light bulb? None, that's a hardware problem!",
+                "Why did the developer go broke? Because he used up all his cache.",
+                "Debugging: Being the detective in a crime movie where you are also the murderer.",
+                "Why do programmers prefer dark mode? Because light attracts bugs!",
+                "What do you call a programmer from Finland? Nerdic."
+            ];
+            return `JOKE
+${jokes[Math.floor(Math.random() * jokes.length)]}
+`;
+        },
+        clear: () => {
+            terminal.style.opacity = 0;
+            setTimeout(() => {
+                terminal.innerHTML = "";
+                terminal.style.opacity = 1;
+            }, 300);
+            return null;
+        },
+        matrix: () => {
+            toggleMatrix();
+            return `MATRIX
+Matrix rain toggled ${matrixActive ? 'ON' : 'OFF'}.
+`;
+        },
+        sound: () => {
+            soundOn = !soundOn;
+            toggleSoundBtn.textContent = soundOn ? 'Sound 🔊' : 'Sound 🔇';
+            return `SOUND
+Sound effects turned ${soundOn ? 'ON' : 'OFF'}.
+`;
+        },
+        theme: () => {
+            document.body.classList.toggle('dark');
+            const isDark = document.body.classList.contains('dark');
+            toggleThemeBtn.textContent = isDark ? 'Light Theme' : 'Dark Theme';
+            taskbar.classList.toggle('dark', isDark);
+            return `THEME
+Switched to ${isDark ? 'Dark' : 'Light'} Theme.
+`;
+        },
+        textcolor: () => {
+            neonGreenText = !neonGreenText;
+            if (neonGreenText) {
+                terminal.style.color = '#00ff00';
+                terminal.style.textShadow = `0 0 8px #00ff00, 0 0 20px #00ff00cc, 0 0 30px #00ff00aa`;
+                toggleTextColorBtn.textContent = 'Text Color: Neon';
+            } else {
+                terminal.style.color = document.body.classList.contains('dark') ? '#adebad' : '#e5d78b';
+                terminal.style.textShadow = document.body.classList.contains('dark') ?
+                    `0 0 6px #adebad, 0 0 15px #a2bda2aa` :
+                    `0 0 4px #c9a66b, 0 0 7px #f0de7e`;
+                toggleTextColorBtn.textContent = 'Text Color: Yellow';
+            }
+            return `TEXT COLOR
+Terminal text color toggled to ${neonGreenText ? 'Neon Green' : 'Yellow'}.
+`;
+        },
+        echo: (args) => {
+            if (!args) return "ECHO\nPlease provide text to echo.\n";
+            return args.join(' ');
+        },
+        calc: (args) => {
+            if (!args || args.length === 0) return "CALC\nPlease provide an expression to evaluate.\n";
+            try {
+                const expression = args.join(' ');
+                const result = Function(`return ${expression}`)();
+                return `CALC\n${expression} = ${result}\n`;
+            } catch (e) {
+                return `CALC ERROR\nInvalid expression: ${e.message}\n`;
+            }
+        },
+        sysinfo: () => {
+            return `SYSTEM INFO
+Platform: ${navigator.platform}
+Browser: ${navigator.userAgent}
+Screen: ${screen.width}×${screen.height}
+Language: ${navigator.language}
+Online: ${navigator.onLine ? 'Yes' : 'No'}
+`;
+        }
+    };
+
+    // Type output with typing effect
+    async function typeOutput(text) {
+        if (!text) return;
+        return new Promise(resolve => {
+            let i = 0;
+            const speed = 10;
+            const output = document.createElement('div');
+            output.className = 'terminal-output';
+            terminal.appendChild(output);
+
+            const interval = setInterval(() => {
+                if (i >= text.length) {
+                    clearInterval(interval);
+                    output.innerHTML += '<br>';
+                    terminal.scrollTop = terminal.scrollHeight;
+                    resolve();
+                    return;
+                }
+
+                const char = text[i];
+                if (char === '\n') {
+                    output.innerHTML += '<br>';
+                } else {
+                    output.innerHTML += char;
+                }
+
+                terminal.scrollTop = terminal.scrollHeight;
+                i++;
+            }, speed);
+        });
+    }
+
+    input.addEventListener('keydown', async e => {
+        if (e.key === 'Enter') {
+            const cmdLine = input.value.trim();
+            if (!cmdLine) return;
+
+            playCommand();
+            commandHistory.push(cmdLine);
+            historyIndex = commandHistory.length;
+
+            const cmdElement = document.createElement('div');
+            cmdElement.className = 'command-line';
+            cmdElement.textContent = `$ ${cmdLine}`;
+            terminal.appendChild(cmdElement);
+
+            input.value = "";
+
+            const parts = cmdLine.split(' ');
+            const cmd = parts[0].toLowerCase();
+            const args = parts.slice(1);
+
+            if (commands[cmd]) {
+                const result = commands[cmd](args);
+                if (result !== null) {
+                    const resultElement = document.createElement('div');
+                    resultElement.className = 'command-result';
+                    terminal.appendChild(resultElement);
+                    await typeOutput(result);
+                }
+            } else {
+                const errorElement = document.createElement('div');
+                errorElement.className = 'command-result';
+                terminal.appendChild(errorElement);
+                await typeOutput(`Unknown command: ${cmd}\nType 'help' for a list of commands.\n`);
+            }
+
+            terminal.scrollTop = terminal.scrollHeight;
+        } else if (e.key === 'ArrowUp') {
+            if (historyIndex > 0) historyIndex--;
+            input.value = commandHistory[historyIndex] || '';
+            playKey();
+            e.preventDefault();
+        } else if (e.key === 'ArrowDown') {
+            if (historyIndex < commandHistory.length - 1) historyIndex++;
+            else historyIndex = commandHistory.length;
+            input.value = commandHistory[historyIndex] || '';
+            playKey();
+            e.preventDefault();
+        } else {
+            playKey();
+        }
+    });
+
+    const navButtons = document.querySelectorAll('.nav-link');
+    navButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            navButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const page = btn.dataset.page;
+            if (page === 'writings') writingsList.style.display = 'block';
+            else writingsList.style.display = 'none';
+
+            let content = '';
+            switch(page) {
+                case 'home':
+                    content = "> HOME\n> Welcome to Enhanced Retro Terminal v3.0\n> Type 'help' for commands.\n";
+                    break;
+                case 'about':
+                    content = commands.about();
+                    break;
+                case 'writings':
+                    content = commands.writings();
+                    break;
+                case 'contact':
+                    content = commands.contact();
+                    break;
+            }
+
+            terminal.innerHTML = content;
+            input.focus();
+            playClick();
+        });
+    });
+
+    toggleMatrixBtn.addEventListener('click', () => {
+        const result = commands.matrix();
+        if (result) typeOutput(result);
+        playClick();
+    });
+    toggleSoundBtn.addEventListener('click', () => {
+        const result = commands.sound();
+        if (result) typeOutput(result);
+        playClick();
+    });
+    toggleThemeBtn.addEventListener('click', () => {
+        const result = commands.theme();
+        if (result) typeOutput(result);
+        playClick();
+    });
+    toggleTextColorBtn.addEventListener('click', () => {
+        const result = commands.textcolor();
+        if (result) typeOutput(result);
+        playClick();
+    });
+    clearBtn.addEventListener('click', () => {
+        const result = commands.clear();
+        if (result) typeOutput(result);
+        playClick();
+    });
+    randomJokeBtn.addEventListener('click', async () => {
+        const result = commands.joke();
+        if (result) await typeOutput(result);
+        playClick();
+    });
+
+    volumeSlider.addEventListener('input', e => {
+        volume = parseFloat(e.target.value);
+    });
+
+    closeBtn.addEventListener('click', () => {
+        playClick();
+        document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:black;color:#0f0;font-family:\'Fira Code\',monospace;font-size:24px;">TERMINAL SESSION ENDED</div>';
+    });
+
+    minimizeBtn.addEventListener('click', () => {
+        playClick();
+        document.body.style.opacity = '0.5';
+        setTimeout(() => document.body.style.opacity = '1', 1000);
+    });
+
+    maximizeBtn.addEventListener('click', () => {
+        playClick();
+        isMaximized = !isMaximized;
+        if (isMaximized) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    });
+
+    document.querySelector('.terminal-container').addEventListener('click', () => input.focus());
+
+    function updateDateTime() {
+        const now = new Date();
+        datetimeElement.textContent = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+    }
+
+    init();
+</script>
+</body>
+</html>
